@@ -3,18 +3,18 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // 1. Get the key safely
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
+// 2. Main Function: Generate Ideas
 export const generateProductIdeas = async (
   category: string, 
   stage: string
 ) => {
   
   if (!API_KEY) {
-    console.error("API Key is missing. Check Vercel Environment Variables.");
+    console.error("API Key is missing.");
     return [{ title: "Error", pitch: "Missing API Key", difficulty: "High" }];
   }
 
   try {
-    // 2. Initialize the Web-ready AI
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
@@ -34,9 +34,7 @@ export const generateProductIdeas = async (
     const response = await result.response;
     const text = response.text();
 
-    // Clean up the text
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
     return JSON.parse(cleanText);
 
   } catch (error) {
@@ -45,4 +43,11 @@ export const generateProductIdeas = async (
       { title: "AI Error", pitch: "Could not generate ideas. Try again.", difficulty: "High" }
     ];
   }
+};
+
+// 3. The Missing Function (Restored to fix build error)
+export const generateNanoBananaVisual = async (context: string) => {
+  // This is a placeholder to ensure the app builds successfully.
+  // Real visual generation would go here.
+  return "visual_placeholder_data";
 };
