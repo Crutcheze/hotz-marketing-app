@@ -1,32 +1,36 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. Get the key safely
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
-// 2. Main Function: Generate Ideas
 export const generateProductIdeas = async (
   category: string, 
   stage: string
 ) => {
   
   if (!API_KEY) {
-    console.error("API Key is missing.");
-    return [{ title: "Error", pitch: "Missing API Key", difficulty: "High" }];
+    return [{ title: "Configuration Error", pitch: "Missing API Key", difficulty: "Critical" }];
   }
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
+    // *** UPDATED: Using the most powerful PRO model ***
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `
-      You are a product strategist.
-      Generate 3 unique product ideas for the category: "${category}".
-      The current lifecycle stage is: "${stage}".
+      You are an expert product strategist.
+      Task: Generate 3 high-quality product ideas for the category "${category}".
+      Context: The product is in the "${stage}" lifecycle stage.
       
-      Return ONLY a raw JSON array.
-      Example:
+      CRITICAL: Return ONLY a valid JSON array. Do not wrap in markdown code blocks.
+      
+      Format:
       [
-        { "title": "Idea Name", "pitch": "One sentence pitch", "difficulty": "Hard" }
+        { 
+          "title": "Name of Idea", 
+          "pitch": "A compelling 2-sentence pitch.", 
+          "difficulty": "Medium" 
+        }
       ]
     `;
 
@@ -34,20 +38,23 @@ export const generateProductIdeas = async (
     const response = await result.response;
     const text = response.text();
 
+    // Cleaning logic to handle cases where the AI adds "```json" anyway
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    
     return JSON.parse(cleanText);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Error:", error);
     return [
-      { title: "AI Error", pitch: "Could not generate ideas. Try again.", difficulty: "High" }
+      { 
+        title: "Generation Failed", 
+        pitch: error.message || "The Pro model is thinking too hard. Try again.", 
+        difficulty: "Error" 
+      }
     ];
   }
 };
 
-// 3. The Missing Function (Restored to fix build error)
 export const generateNanoBananaVisual = async (context: string) => {
-  // This is a placeholder to ensure the app builds successfully.
-  // Real visual generation would go here.
   return "visual_placeholder_data";
 };
