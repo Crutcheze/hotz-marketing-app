@@ -8,28 +8,41 @@ export const generateProductIdeas = async (
 ) => {
   
   if (!API_KEY) {
-    return [{ title: "Configuration Error", pitch: "Missing API Key", difficulty: "Critical" }];
+    console.error("Missing API Key");
+    return [{ title: "Config Error", pitch: "Add VITE_GEMINI_API_KEY to Vercel", difficulty: "High" }];
   }
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
     
-    // *** UPDATED: Using the most powerful PRO model ***
+    // Using the Pro model for smarter logic
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
     const prompt = `
       You are an expert product strategist.
-      Task: Generate 3 high-quality product ideas for the category "${category}".
-      Context: The product is in the "${stage}" lifecycle stage.
+      Generate 3 high-quality product ideas for the category "${category}".
+      The product is in the "${stage}" lifecycle stage.
       
-      CRITICAL: Return ONLY a valid JSON array. Do not wrap in markdown code blocks.
-      
-      Format:
+      CRITICAL: The output must be a raw JSON array.
+      Each idea MUST have these exact fields to work with the dashboard:
+      - title (String): catchy name
+      - pitch (String): 2 sentence value prop
+      - score (Number): 1-10 potential score
+      - difficulty (String): "Easy", "Medium", or "Hard"
+      - visuals (String): Detailed description of the product aesthetic
+      - strategy (String): One distinct go-to-market tactic
+      - tiktok_potential (String): "Viral", "Moderate", or "Niche"
+
+      Example JSON:
       [
         { 
-          "title": "Name of Idea", 
-          "pitch": "A compelling 2-sentence pitch.", 
-          "difficulty": "Medium" 
+          "title": "Eco-Leash", 
+          "pitch": "A biodegradable leash made from algae.", 
+          "score": 9, 
+          "difficulty": "Medium",
+          "visuals": "Matte green texture with recycled brass clasps.",
+          "strategy": "Partner with eco-conscious dog influencers.",
+          "tiktok_potential": "Viral"
         }
       ]
     `;
@@ -38,7 +51,7 @@ export const generateProductIdeas = async (
     const response = await result.response;
     const text = response.text();
 
-    // Cleaning logic to handle cases where the AI adds "```json" anyway
+    // Clean up markdown formatting if the AI adds it
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
@@ -48,13 +61,16 @@ export const generateProductIdeas = async (
     return [
       { 
         title: "Generation Failed", 
-        pitch: error.message || "The Pro model is thinking too hard. Try again.", 
+        pitch: error.message || "Could not generate ideas.", 
+        score: 0,
+        visuals: "Check API Key and Model status.",
         difficulty: "Error" 
       }
     ];
   }
 };
 
+// Placeholder to prevent build errors
 export const generateNanoBananaVisual = async (context: string) => {
   return "visual_placeholder_data";
 };
