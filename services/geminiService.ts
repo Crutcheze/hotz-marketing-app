@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. Get the key from Vercel (Vite style)
+// 1. Get the key safely
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
 export const generateProductIdeas = async (
@@ -8,10 +8,9 @@ export const generateProductIdeas = async (
   stage: string
 ) => {
   
-  // Safety Check
   if (!API_KEY) {
-    console.error("API Key is missing! Check Vercel settings.");
-    throw new Error("Missing API Key. Please add VITE_GEMINI_API_KEY to Vercel.");
+    console.error("API Key is missing. Check Vercel Environment Variables.");
+    return [{ title: "Error", pitch: "Missing API Key", difficulty: "High" }];
   }
 
   try {
@@ -22,30 +21,28 @@ export const generateProductIdeas = async (
     const prompt = `
       You are a product strategist.
       Generate 3 unique product ideas for the category: "${category}".
-      Lifecycle stage: "${stage}".
+      The current lifecycle stage is: "${stage}".
       
-      Return ONLY a raw JSON array. Example:
-      [{"title": "Idea", "pitch": "One sentence", "difficulty": "Medium"}]
+      Return ONLY a raw JSON array.
+      Example:
+      [
+        { "title": "Idea Name", "pitch": "One sentence pitch", "difficulty": "Hard" }
+      ]
     `;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // Clean the text to ensure it's valid JSON
+    // Clean up the text
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
 
   } catch (error) {
     console.error("AI Error:", error);
-    // Return a fake error idea so the app doesn't crash visually
     return [
-      { 
-        title: "Connection Error", 
-        pitch: "Could not reach Google AI. Check the console for details.", 
-        difficulty: "Error" 
-      }
+      { title: "AI Error", pitch: "Could not generate ideas. Try again.", difficulty: "High" }
     ];
   }
 };
