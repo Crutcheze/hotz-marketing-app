@@ -51,17 +51,16 @@ export const generateProductIdeas = async (
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
-
-  } catch (error: any) {
+} catch (error: any) {
     console.error("AI Error:", error);
     
-    // 4. ERROR REVEALER: This puts the ACTUAL error message on the screen
+    // FORCE the error into the Title so we can see it
     return [
       { 
-        title: "AI Error Occurred", 
-        pitch: `DEBUG INFO: ${error.message || JSON.stringify(error)}`, 
+        title: `ERROR: ${error.toString()}`, 
+        pitch: "Check the title above for the error code.", 
         score: 0,
-        visuals: "Please send this error message to support.",
+        visuals: "Debug Mode Active",
         difficulty: "Error" 
       }
     ];
