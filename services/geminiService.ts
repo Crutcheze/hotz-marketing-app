@@ -2,15 +2,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
-export const generateProductIdeas = async (
-  category: string, 
-  stage: string
-) => {
-  
+export const generateProductIdeas = async (category: string, stage: string) => {
   if (!API_KEY) {
     return [{ 
-      title: "Configuration Error", 
-      pitch: "Missing API Key. Check Vercel settings.", 
+      title: "Missing API Key", 
+      pitch: "Check Vercel settings.", 
       score: 0, 
       difficulty: "Error" 
     }];
@@ -18,27 +14,24 @@ export const generateProductIdeas = async (
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
-    
-    // *** THE FIX: Switch to the classic, universally supported model ***
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Using Flash with the new SDK
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
-      You are a product strategist.
-      Generate 3 product ideas for category: "${category}".
-      Lifecycle stage: "${stage}".
+      Act as a product strategist. 
+      Generate 3 ideas for category: "${category}". 
+      Return ONLY a JSON array. No markdown.
       
-      RETURN JSON ONLY. No markdown. No \`\`\` code blocks.
-      
-      Required JSON Structure for each idea:
+      Structure:
       [
         { 
-          "title": "Short Name", 
-          "pitch": "One sentence value prop", 
+          "title": "Idea Name", 
+          "pitch": "Short description", 
           "score": 8, 
-          "difficulty": "Medium",
-          "visuals": "Describe the look",
-          "strategy": "One tactic",
-          "tiktok_potential": "Viral"
+          "difficulty": "Easy",
+          "visuals": "Visual description",
+          "strategy": "Marketing tactic",
+          "tiktok_potential": "High"
         }
       ]
     `;
@@ -46,25 +39,22 @@ export const generateProductIdeas = async (
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
 
   } catch (error: any) {
     console.error("AI Error:", error);
-    return [
-      { 
-        title: "AI Error", 
-        pitch: `Note: ${error.message || "Unknown error"}`, 
-        score: 0, 
-        visuals: "Try refreshing the page.",
-        difficulty: "Error" 
-      }
-    ];
+    return [{ 
+      title: "AI Error", 
+      pitch: error.message || "Unknown error", 
+      score: 0, 
+      visuals: "If this persists, the API Key might be invalid.",
+      difficulty: "Error" 
+    }];
   }
 };
 
 export const generateNanoBananaVisual = async (context: string) => {
-  return "visual_placeholder_data";
+  return "visual_placeholder";
 };
