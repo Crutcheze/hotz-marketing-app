@@ -7,12 +7,11 @@ export const generateProductIdeas = async (
   stage: string
 ) => {
   
-  // 1. Check for Key immediately
   if (!API_KEY) {
     return [{ 
-      title: "Missing API Key", 
-      pitch: "Please check your Vercel Environment Variables.", 
-      score: 0,
+      title: "Configuration Error", 
+      pitch: "Missing API Key. Check Vercel settings.", 
+      score: 0, 
       difficulty: "Error" 
     }];
   }
@@ -20,12 +19,13 @@ export const generateProductIdeas = async (
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
     
-    // 2. SWITCH TO FLASH (More reliable for Free Tier)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // *** THE FIX: Switch to the classic, universally supported model ***
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `
       You are a product strategist.
-      Generate 3 product ideas for category: "${category}" in stage: "${stage}".
+      Generate 3 product ideas for category: "${category}".
+      Lifecycle stage: "${stage}".
       
       RETURN JSON ONLY. No markdown. No \`\`\` code blocks.
       
@@ -47,20 +47,18 @@ export const generateProductIdeas = async (
     const response = await result.response;
     const text = response.text();
 
-    // 3. Robust Cleaning (Removes 'json' markers if the AI adds them)
     const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
     
     return JSON.parse(cleanText);
-} catch (error: any) {
+
+  } catch (error: any) {
     console.error("AI Error:", error);
-    
-    // FORCE the error into the Title so we can see it
     return [
       { 
-        title: `ERROR: ${error.toString()}`, 
-        pitch: "Check the title above for the error code.", 
-        score: 0,
-        visuals: "Debug Mode Active",
+        title: "AI Error", 
+        pitch: `Note: ${error.message || "Unknown error"}`, 
+        score: 0, 
+        visuals: "Try refreshing the page.",
         difficulty: "Error" 
       }
     ];
