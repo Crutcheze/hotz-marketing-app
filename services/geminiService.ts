@@ -3,10 +3,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
 export const generateProductIdeas = async (category: string, stage: string) => {
+  // 1. Safety Check
   if (!API_KEY) {
     return [{ 
-      title: "Missing API Key", 
-      pitch: "Check Vercel settings.", 
+      title: "Config Error", 
+      pitch: "Missing API Key.", 
       score: 0, 
       difficulty: "Error" 
     }];
@@ -14,8 +15,9 @@ export const generateProductIdeas = async (category: string, stage: string) => {
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
-    // Using Flash with the new SDK
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    // *** THE FIX: Explicitly using 'gemini-pro' which works on all keys ***
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `
       Act as a product strategist. 
@@ -49,7 +51,7 @@ export const generateProductIdeas = async (category: string, stage: string) => {
       title: "AI Error", 
       pitch: error.message || "Unknown error", 
       score: 0, 
-      visuals: "If this persists, the API Key might be invalid.",
+      visuals: "Check console for details.",
       difficulty: "Error" 
     }];
   }
