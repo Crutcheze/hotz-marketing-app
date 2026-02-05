@@ -1,15 +1,26 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+
+
 
 export const generateProductIdeas = async (category: string, stage: string) => {
-  // 1. Safety Check
-  if (!API_KEY) {
-    return [{ 
-      title: "Config Error", 
-      pitch: "Missing API Key.", 
-      score: 0, 
-      difficulty: "Error" 
+  const res = await fetch("/api/generateProductIdeas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category, stage }),
+  });
+
+  if (!res.ok) {
+    return [{
+      title: "AI Error",
+      pitch: "Server error. Check Vercel logs.",
+      score: 0,
+      difficulty: "Error",
+      visuals: "N/A",
+    }];
+  }
+
+  return await res.json();
+
     }];
   }
 
