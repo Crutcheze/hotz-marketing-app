@@ -6,13 +6,15 @@ export const generateProductIdeas = async (category: string, stage: string) => {
   });
 
   if (!res.ok) {
-    return [{
-      title: "AI Error",
-      pitch: "Server error. Check Vercel logs.",
-      score: 0,
-      difficulty: "Error",
-      visuals: "N/A",
-    }];
+    return [
+      {
+        title: "AI Error",
+        pitch: "Server error. Check Vercel logs.",
+        score: 0,
+        difficulty: "Error",
+        visuals: "N/A",
+      },
+    ];
   }
 
   return await res.json();
