@@ -15,8 +15,9 @@ export const generateProductIdeas = async (category: string, stage: string) => {
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
-    // Using 1.5-flash because it works with your key and is fast
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    // *** THE FIX: Use the PINNED version to stop the 404 errors ***
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 
     const prompt = `
       Act as a product strategist. 
@@ -53,22 +54,20 @@ export const generateProductIdeas = async (category: string, stage: string) => {
     
     const rawIdeas = JSON.parse(cleanText);
 
-    // *** THE TRANSLATOR ***
-    // This part fixes the empty boxes by mapping data to every name the UI looks for
+    // *** THE TRANSLATOR (Keeps your data visible) ***
     return rawIdeas.map((idea: any) => ({
       ...idea,
-      // Fixes "Visual Trend Details"
-      visual_trend: idea.visuals,
+      // Map 'visuals' to 'visual_trend' (what your UI wants)
+      visual_trend: idea.visuals || idea.visualDetails || "No visual data",
       visualTrend: idea.visuals,
       visualDetails: idea.visuals,
       
-      // Fixes "Strategy"
-      marketing_strategy: idea.strategy,
+      // Map 'strategy' to 'marketing_strategy'
+      marketing_strategy: idea.strategy || idea.go_to_market || "No strategy data",
       marketingStrategy: idea.strategy,
-      go_to_market: idea.strategy,
       
-      // Fixes "TikTok"
-      tiktokPotential: idea.tiktok_potential,
+      // Map 'tiktok' to 'tiktokPotential'
+      tiktokPotential: idea.tiktok_potential || "Medium",
       tiktok: idea.tiktok_potential
     }));
 
